@@ -8,6 +8,12 @@ from typing import Optional
 import gym
 from gym import spaces
 
+try:
+    from colorama import Fore
+
+except ModuleNotFoundError:
+    print("Module named Colorama Not Found!")
+
 """
 
 The objective of this environment is to land a rocket on a ship.
@@ -797,8 +803,9 @@ def run():
     mouse_joint = None
     mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
 
-    run = True
-    while run:
+    done      = False
+    truncated = False
+    while all([not(done), not(truncated)]):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -865,7 +872,10 @@ def run():
 
         # Step
         observation, reward, done, truncated, _ = env.step(action)
-        #print(reward) if not (done or truncated) else print("FINISHED SIMULATION")
+        try:
+            print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}") if not (done or truncated) else print("FINISHED SIMULATION")
+        except NameError:
+            print(f"Observation: {observation}, Reward: {reward}") if not (done or truncated) else print("FINISHED SIMULATION")
 
         # Mouse Interaction
         mouse_pos = pygame.mouse.get_pos()
