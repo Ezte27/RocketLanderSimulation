@@ -245,15 +245,17 @@ class Rocket(gym.Env):
         if (render_mode != None) and (render_mode not in self.metadata['render_modes']):
             raise Exception(f"The Render Mode provided is not available. \n Available Render Modes = {self.metadata['render_modes']}")
 
-        self.screen  = pygame.display.get_surface()
+        if render_mode == "human":
+            self.screen = pygame.display.get_surface()
 
-        if self.screen is None and render_mode == "human":
-            self.screen   = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
-            print("[WARNING] pygame display NOT defined")
+            if self.screen is None:
+                self.screen   = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
+                print("[WARNING] pygame display NOT defined")
         
         if clock:
             self.clock    = pygame.time.Clock()
-            self.fps      = fps if fps else FPS
+            self.fps      = fps if fps else self.metadata["render_fps"]
+            
         else:
             self.clock    = None
             self.fps      = None
@@ -497,7 +499,12 @@ class Rocket(gym.Env):
 
         self.space.gravity = (X_GRAVITY, Y_GRAVITY)
 
-        self.screen  = pygame.display.get_surface()
+        if self.render_mode == "human":
+            self.screen = pygame.display.get_surface()
+            
+            if self.screen is None:
+                self.screen   = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
+                print("[WARNING] pygame display NOT defined")
         
         if self.clock:
             self.clock = pygame.time.Clock()
@@ -514,7 +521,8 @@ class Rocket(gym.Env):
         
         self._setup()
 
-        self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        if self.render_mode == 'human':
+            self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         
         # Apply random angular vel to the rocket
         if seed:
@@ -670,122 +678,119 @@ class Rocket(gym.Env):
         if outside or crashed:
             done   = True
             reward = -80.000000000
-        
-        if self.clock:
-            self.clock.tick(self.fps)
 
         self.space.step(self.dt)
 
-        if self.render_mode == "human":
-            self.render()
+        self.render()
 
         return np.array(state, dtype=np.float32), reward, done, truncated, info # observation, reward, done, truncated, info
     
     def render(self):
 
-        self.surf = pygame.Surface((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
-        self.particle_surf = self.surf.copy()
+        if self.render_mode is not None:
+            self.surf = pygame.Surface((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
+            self.particle_surf = self.surf.copy()
 
-        pygame.draw.rect(self.surf, SKY_COLOR, self.surf.get_rect())
-        pygame.draw.rect(self.particle_surf, (255, 255, 255), self.particle_surf.get_rect())
+            pygame.draw.rect(self.surf, SKY_COLOR, self.surf.get_rect())
+            pygame.draw.rect(self.particle_surf, (255, 255, 255), self.particle_surf.get_rect())
 
-        for obj in self.particles:
+            for obj in self.particles:
 
-            NewTTL = (((obj[2] - 0) * 2) / 1) - 1
+                NewTTL = (((obj[2] - 0) * 2) / 1) - 1
 
-            obj[1] = (obj[1][0], obj[1][1] + (randint(PARTICLE_Y_VEL_RANGE[0], PARTICLE_Y_VEL_RANGE[1]) / FPS) * NewTTL) # Move the smoke upwards
-            obj[2] -= random() * PARTICLE_TTL_SUBTRACT # Take time from its lifetime
-            obj[3] += PARTICLE_GROWTH_RATE if obj[3] < PARICLE_MAX_RADIUS else 0 # radius grows as the particle gets older
-            ttl = 1 - obj[2]
-            
-            obj[4] = (
-                int(ttl * 255),
-                int(ttl * 255),
-                int(ttl * 255),
-                int(255)
-            )
-
-        # Drawing the Particles
-
-        for obj in self.particles:
-            try:
-                pygame.draw.circle(
-                    self.particle_surf,
-                    color=obj[4],
-                    center = (obj[1][0], obj[1][1]),
-                    radius = obj[3], 
+                obj[1] = (obj[1][0], obj[1][1] + (randint(PARTICLE_Y_VEL_RANGE[0], PARTICLE_Y_VEL_RANGE[1]) / FPS) * NewTTL) # Move the smoke upwards
+                obj[2] -= random() * PARTICLE_TTL_SUBTRACT # Take time from its lifetime
+                obj[3] += PARTICLE_GROWTH_RATE if obj[3] < PARICLE_MAX_RADIUS else 0 # radius grows as the particle gets older
+                ttl = 1 - obj[2]
+                
+                obj[4] = (
+                    int(ttl * 255),
+                    int(ttl * 255),
+                    int(ttl * 255),
+                    int(255)
                 )
 
-            except ValueError: # particle RGB value is invalid
-                ...
+            # Drawing the Particles
 
-        # Draw Two Flags on either side of the landing pad
-
-        if DRAW_FLAGS: 
-            for i, x in enumerate([LANDING_PAD_POS[0] - LANDING_PAD_WIDTH/2, LANDING_PAD_POS[0] + LANDING_PAD_WIDTH/2]):
-                flagy1 = LANDING_PAD_HEIGHT
-                flagy2 = flagy1 * 2
-                pygame.draw.line(
-                    self.surf,
-                    color=(255, 255, 255),
-                    start_pos=(x, flagy1),
-                    end_pos=(x, flagy2),
-                    width=1,
-                )
-
-                if i == 0:
-                    pygame.draw.polygon(
-                        self.surf,
-                        color=(204, 204, 0),
-                        points=[
-                            (x, flagy2),
-                            (x, flagy2 - 10),
-                            (x - 25, flagy2 - 5),
-                        ],
+            for obj in self.particles:
+                try:
+                    pygame.draw.circle(
+                        self.particle_surf,
+                        color=obj[4],
+                        center = (obj[1][0], obj[1][1]),
+                        radius = obj[3], 
                     )
-                    # gfxdraw.aapolygon(
-                    #     self.surf,
-                    #     [(x, flagy2), (x, flagy2 - 10), (x - 25, flagy2 - 5)],
-                    #     (204, 204, 0),
-                    # )
-                        
+
+                except ValueError: # particle RGB value is invalid
+                    ...
+
+            # Draw Two Flags on either side of the landing pad
+
+            if DRAW_FLAGS: 
+                for i, x in enumerate([LANDING_PAD_POS[0] - LANDING_PAD_WIDTH/2, LANDING_PAD_POS[0] + LANDING_PAD_WIDTH/2]):
+                    flagy1 = LANDING_PAD_HEIGHT
+                    flagy2 = flagy1 * 2
+                    pygame.draw.line(
+                        self.surf,
+                        color=(255, 255, 255),
+                        start_pos=(x, flagy1),
+                        end_pos=(x, flagy2),
+                        width=1,
+                    )
+
+                    if i == 0:
+                        pygame.draw.polygon(
+                            self.surf,
+                            color=(204, 204, 0),
+                            points=[
+                                (x, flagy2),
+                                (x, flagy2 - 10),
+                                (x - 25, flagy2 - 5),
+                            ],
+                        )
+                        # gfxdraw.aapolygon(
+                        #     self.surf,
+                        #     [(x, flagy2), (x, flagy2 - 10), (x - 25, flagy2 - 5)],
+                        #     (204, 204, 0),
+                        # )
+                            
+                    else:
+                        pygame.draw.polygon(
+                            self.surf,
+                            color=(204, 204, 0),
+                            points=[
+                                (x, flagy2),
+                                (x, flagy2 - 10),
+                                (x + 25, flagy2 - 5),
+                            ],
+                        )
+                        # gfxdraw.aapolygon(
+                        #     self.surf,
+                        #     [(x, flagy2), (x, flagy2 - 10), (x + 25, flagy2 - 5)],
+                        #     (204, 204, 0),
+                        # )
+
+            # Create Smoke Particles
+            if len(self.particles) <= MAX_PARTICLES:
+                if self.particles:
+                    if self.particles[-1][2] < SMOKE_RATE * self.throttle:
+                        self._create_particle(0.02, randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
                 else:
-                    pygame.draw.polygon(
-                        self.surf,
-                        color=(204, 204, 0),
-                        points=[
-                            (x, flagy2),
-                            (x, flagy2 - 10),
-                            (x + 25, flagy2 - 5),
-                        ],
-                    )
-                    # gfxdraw.aapolygon(
-                    #     self.surf,
-                    #     [(x, flagy2), (x, flagy2 - 10), (x + 25, flagy2 - 5)],
-                    #     (204, 204, 0),
-                    # )
+                    if self.throttle > 0:
+                        self._create_particle(0.02, randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
 
-        # Create Smoke Particles
-        if len(self.particles) <= MAX_PARTICLES:
-            if self.particles:
-                if self.particles[-1][2] < SMOKE_RATE * self.throttle:
-                    self._create_particle(0.02, randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
-            else:
-                if self.throttle > 0:
-                    self._create_particle(0.02, randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
+            self._clean_particles(False)
 
-        self._clean_particles(False)
+            self.surf = pygame.transform.flip(self.surf, False, False)
 
-        self.surf = pygame.transform.flip(self.surf, False, False)
+            # DEBUG
 
-        # DEBUG
+            #surf = pygame.Surface(ROCKET_SIZE)
+            #surf_trans = pygame.transform.rotate(surf, math.degrees(self.lander.body.angle))
+            #rect = surf_trans.get_rect(center = self.lander.body.position)
 
-        #surf = pygame.Surface(ROCKET_SIZE)
-        #surf_trans = pygame.transform.rotate(surf, math.degrees(self.lander.body.angle))
-        #rect = surf_trans.get_rect(center = self.lander.body.position)
-
-        font_surf = FONT.render(str(self.stepNumber), False, "Black")
-        font_rect = font_surf.get_rect(topleft = (20, 20))
+            font_surf = FONT.render(str(self.stepNumber), False, "Black")
+            font_rect = font_surf.get_rect(topleft = (20, 20))
 
         if self.render_mode == "human":
             assert self.screen is not None, "Screen is NONE"
@@ -803,7 +808,7 @@ class Rocket(gym.Env):
             pygame.event.pump()
 
             if self.clock is not None:
-                self.clock.tick(self.metadata["render_fps"])
+                self.clock.tick(self.fps)
 
             pygame.display.flip()
 
