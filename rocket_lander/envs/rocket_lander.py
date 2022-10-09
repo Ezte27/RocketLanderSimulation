@@ -628,12 +628,13 @@ class Rocket(gym.Env):
         crashed = False
 
         shaping = (
+            -40 * abs(state[0]) # X pos is really important to nail down
             -70 * np.sqrt(state[0] * state[0] + state[1] * state[1])
-            - 70 * np.sqrt(state[2] * state[2] + state[3] * state[3])
-            - 70 * abs(state[4])
-            - 30 * abs(state[5])
-            + 15 * state[6]
-            + 15 * state[7]
+            -70 * np.sqrt(state[2] * state[2] + state[3] * state[3])
+            -70 * abs(state[4])
+            -30 * abs(state[5])
+            +15 * state[6]
+            +15 * state[7]
         )  # Fifteen points for each leg contact
            # If you lose contact after landing, you get negative reward
         
