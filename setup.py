@@ -7,6 +7,6 @@ setup(name='rocket_lander',
       author_email='estedcg27@gmail.com',
       description='Open AI Gym Environment for a Rocket Lander Simulation in Python.',
       license='MIT',
-      packages=['envs'],
+      packages=['rocket_lander', 'envs'],
       install_requires=['gym','numpy', 'pygame']
       )
