@@ -621,7 +621,6 @@ class Rocket(gym.Env):
         
         if (state[3] >= CRASHING_SPEED) and (any(self.leg_contacts)):
             crashed = True
-            print("CRASHED")
         
         if not all(self.leg_contacts):
             reward -= 0.15 / FPS
