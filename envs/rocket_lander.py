@@ -598,7 +598,7 @@ class Rocket(gym.Env):
         ], dtype = np.float32)
 
         # Reward
-        outside = True if abs(state[0]) > 1.5 or abs(state[1]) > 1.5 else False
+        outside = True if abs(state[0]) > 1.2 or abs(state[1]) > 1.2 else False
         landed = state[6] and state[7] and vel.x < 0.3 and vel.y < 0.2
         crashed = False
 
