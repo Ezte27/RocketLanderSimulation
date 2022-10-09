@@ -49,9 +49,6 @@ Continuous control inputs are:
 
 """
 
-# TODO
-# - Try to make a new body named "MainEngine" and use a joint to connect it to the rocket; 
-# In this way, you could apply a force and angle/gimbal to the engine and it would affect the entire rocket 
 
 pygame.init()
 
@@ -519,7 +516,23 @@ class Rocket(gym.Env):
             np.random.seed(seed)
         self.lander.body.apply_impulse_at_local_point((np.random.randint(-200 * SCALE, 200 * SCALE, 1), 0), (0, -ROCKET_SIZE[1]/2))
 
-        return ...#observation, info
+        # Observation
+        pos    = self.lander.body.position
+        vel    = self.lander.body.velocity
+        angVel = self.lander.body.angular_velocity
+
+        state = np.array([
+            (pos.x - VIEWPORT_WIDTH / 2) / (VIEWPORT_WIDTH / 2),
+            (-pos.y + (LANDING_PAD_POS[1] - LEG_SIZE[1]/2 - ROCKET_SIZE[1]/2)) / (VIEWPORT_HEIGHT),
+            vel.x / 1000,
+            vel.y / 1000,
+            self.lander.body.angle,
+            20.0 * angVel / FPS,
+            1.0 if self.leg_contacts[0] else 0.0,
+            1.0 if self.leg_contacts[1] else 0.0,
+        ], dtype = np.float32)
+
+        return np.array(state, dtype=np.float32), {}
     
     def step(self, action):
         assert action != None, "Action is None"
@@ -876,7 +889,7 @@ def run():
         try:
             print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}")
         except NameError:
-            print(f"Observation: {observation}, Reward: {reward}") if not (done or truncated) else print("FINISHED SIMULATION")
+            print(f"Observation: {observation}, Reward: {reward}")
         
         if (done or truncated): print("FINISHED SIMULATION")
 

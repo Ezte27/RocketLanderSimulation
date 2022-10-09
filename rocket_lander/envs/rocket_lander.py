@@ -516,6 +516,9 @@ class Rocket(gym.Env):
             np.random.seed(seed)
         self.lander.body.apply_impulse_at_local_point((np.random.randint(-200 * SCALE, 200 * SCALE, 1), 0), (0, -ROCKET_SIZE[1]/2))
 
+        # Checking for leg contact with landing pad
+        self.leg_contacts = self._check_leg_contacts(True)
+
         # Observation
         pos    = self.lander.body.position
         vel    = self.lander.body.velocity
