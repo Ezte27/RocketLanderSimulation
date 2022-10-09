@@ -1,3 +1,5 @@
+__credits__ = ["Esteban calderón"]
+
 import pygame
 import pymunk
 import pymunk.pygame_util
@@ -488,7 +490,7 @@ class Rocket(gym.Env):
 
         self._clean_particles(True)
 
-    def reset(self, seed:int = None):
+    def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         self._destroy()
         
         self.space = pymunk.Space()
