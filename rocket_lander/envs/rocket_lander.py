@@ -60,8 +60,8 @@ WINDOW                 = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGH
 CLOCK                  = pygame.time.Clock()
 FONT                   = pygame.font.SysFont("ariel", 24)
 
-FPS                    = 30
-SCALE                  = 1 # Temporal Scaling, lower is faster - adjust forces appropriately
+FPS                    = 30 # Default FPS used if no fps is provided
+SCALE                  = 1  # Temporal Scaling, lower is faster - adjust forces appropriately
 
 
 # Environment Variables
@@ -211,7 +211,8 @@ class Rocket(gym.Env):
         space:       Optional[pymunk.Space] = None,
         render_mode: Optional[str]          = None,
         gravity:     tuple                  = (0, 20),
-        clock:       Optional[bool]         = False
+        clock:       Optional[bool]         = False,
+        fps:         Optional[int]          = None
 
     ) -> None:
         '''
@@ -250,8 +251,10 @@ class Rocket(gym.Env):
         
         if clock:
             self.clock    = pygame.time.Clock()
+            self.fps      = fps if fps else FPS
         else:
             self.clock    = None
+            self.fps      = None
 
         self.dt           = 1 / self.metadata['render_fps']
         self.render_mode  = render_mode
@@ -664,6 +667,9 @@ class Rocket(gym.Env):
         if outside or crashed:
             done   = True
             reward = -80.000000000
+        
+        if self.clock:
+            self.clock.tick(self.fps)
 
         self.space.step(self.dt)
 
