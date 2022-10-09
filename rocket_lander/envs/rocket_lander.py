@@ -49,9 +49,6 @@ Continuous control inputs are:
 
 """
 
-# TODO
-# - Try to make a new body named "MainEngine" and use a joint to connect it to the rocket; 
-# In this way, you could apply a force and angle/gimbal to the engine and it would affect the entire rocket 
 
 pygame.init()
 
@@ -534,7 +531,7 @@ class Rocket(gym.Env):
             1.0 if self.leg_contacts[0] else 0.0,
             1.0 if self.leg_contacts[1] else 0.0,
         ], dtype = np.float32)
-    
+
         return np.array(state, dtype=np.float32), {}
     
     def step(self, action):
