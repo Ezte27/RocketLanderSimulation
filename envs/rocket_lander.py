@@ -70,7 +70,7 @@ SCALE                  = 1 # Temporal Scaling, lower is faster - adjust forces a
 # Environment Variables
 CONTINUOUS             = False
 MAX_STEP_NUMBER        = 1200
-LANDING_TICKS          = 100
+LANDING_TICKS          = 60
 
 # Pymunk Space Setup
 X_GRAVITY, Y_GRAVITY   = (0, 956 * SCALE)
@@ -609,10 +609,10 @@ class Rocket(gym.Env):
         crashed = False
 
         shaping = (
-            -100 * np.sqrt(state[0] * state[0] + state[1] * state[1])
-            - 100 * np.sqrt(state[2] * state[2] + state[3] * state[3])
-            - 100 * abs(state[4])
-            - 50 * abs(state[5])
+            -70 * np.sqrt(state[0] * state[0] + state[1] * state[1])
+            - 70 * np.sqrt(state[2] * state[2] + state[3] * state[3])
+            - 70 * abs(state[4])
+            - 30 * abs(state[5])
             + 15 * state[6]
             + 15 * state[7]
         )  # Fifteen points for each leg contact
@@ -623,13 +623,13 @@ class Rocket(gym.Env):
         self.prev_shaping = shaping
 
         reward -= self.power * 0.10 # less fuel spent is better, about -30 for heuristic landing
-        reward -= abs(self.force_dir) * 0.03
+        reward -= abs(self.force_dir) * 0.06
         
         if (state[3] >= CRASHING_SPEED) and (any(self.leg_contacts)):
             crashed = True
         
         if not all(self.leg_contacts):
-            reward -= 0.15 / FPS
+            reward -= 0.12 / FPS
 
         if self.stepNumber >= MAX_STEP_NUMBER:
             truncated = True
@@ -637,7 +637,8 @@ class Rocket(gym.Env):
         if landed and not crashed:
             if self.landingTicks >= LANDING_TICKS:
                 done   = True
-                reward = +250
+                reward += 250
+                print(f"HOORAY!!!, Landed Sucessfully")
             else:
                 if self.landingTicks == 0: # Just landed
                     ...
@@ -646,7 +647,7 @@ class Rocket(gym.Env):
         
         if outside or crashed:
             done   = True
-            reward = -120
+            reward = -80.000000000
 
         self.space.step(self.dt)
 
@@ -873,9 +874,11 @@ def run():
         # Step
         observation, reward, done, truncated, _ = env.step(action)
         try:
-            print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}") if not (done or truncated) else print("FINISHED SIMULATION")
+            print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}")
         except NameError:
             print(f"Observation: {observation}, Reward: {reward}") if not (done or truncated) else print("FINISHED SIMULATION")
+        
+        if (done or truncated): print("FINISHED SIMULATION")
 
         # Mouse Interaction
         mouse_pos = pygame.mouse.get_pos()
