@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: rocket-lander
+Version: 0.1
+Summary: Open AI Gym Environment for a Rocket Lander Simulation in Python.
+Home-page: https://github.com/Ezte27/RocketLander
+Author: Esteban Calderon
+Author-email: estedcg27@gmail.com
+License: MIT
+Platform: UNKNOWN
+License-File: LICENSE
+
+UNKNOWN
+
