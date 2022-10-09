@@ -876,7 +876,7 @@ def run():
         try:
             print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}")
         except NameError:
-            print(f"Observation: {observation}, Reward: {reward}") if not (done or truncated) else print("FINISHED SIMULATION")
+            print(f"Observation: {observation}, Reward: {reward}")
         
         if (done or truncated): print("FINISHED SIMULATION")
 
