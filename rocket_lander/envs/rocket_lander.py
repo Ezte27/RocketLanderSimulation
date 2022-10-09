@@ -658,7 +658,7 @@ class Rocket(gym.Env):
             if self.landingTicks >= LANDING_TICKS:
                 done   = True
                 reward += 250
-                print(f"HOORAY!!!, Landed Sucessfully")
+                #print(f"HOORAY!!!, Landed Sucessfully")
             else:
                 if self.landingTicks == 0: # Just landed
                     ...

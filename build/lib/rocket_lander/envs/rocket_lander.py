@@ -240,7 +240,7 @@ class Rocket(gym.Env):
 
         self.space.gravity = gravity
 
-        if render_mode not in self.metadata['render_modes']:
+        if (render_mode != None) and (render_mode not in self.metadata['render_modes']):
             raise Exception(f"The Render Mode provided is not available. \n Available Render Modes = {self.metadata['render_modes']}")
 
         self.screen  = pygame.display.get_surface()
