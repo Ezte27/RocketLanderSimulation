@@ -1,6 +1,7 @@
 LICENSE
 README.md
 setup.py
+rocket_lander/__init__.py
 rocket_lander.egg-info/PKG-INFO
 rocket_lander.egg-info/SOURCES.txt
 rocket_lander.egg-info/dependency_links.txt
