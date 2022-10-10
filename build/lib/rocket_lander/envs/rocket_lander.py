@@ -703,7 +703,7 @@ class Rocket(gym.Env):
 
         self.render()
 
-        return np.array(state, dtype=np.float32), reward, done, truncated, info # observation, reward, done, truncated, info
+        return np.array(state, dtype=np.float32), reward, done, info # observation, reward, done, truncated, info
     
     def render(self):
 
