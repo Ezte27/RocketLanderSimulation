@@ -51,7 +51,6 @@ Continuous control inputs are:
 
 """
 
-
 pygame.init()
 
 # Display Setup
