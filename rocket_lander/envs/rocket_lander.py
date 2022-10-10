@@ -70,7 +70,7 @@ MAX_STEP_NUMBER        = 1200
 LANDING_TICKS          = 60
 
 # Pymunk Space Setup
-X_GRAVITY, Y_GRAVITY   = (0, 956 * SCALE)
+X_GRAVITY, Y_GRAVITY   = (0, 900 * SCALE) # Original gravity 956
 STARTING_POS           = (VIEWPORT_WIDTH//2, -200)
 
 # Sky
@@ -534,6 +534,7 @@ class Rocket(gym.Env):
 
         if self.render_mode == 'human':
             self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+            self.draw_options.flags = pymunk.SpaceDebugDrawOptions.DRAW_SHAPES
         
         # Apply random angular vel to the rocket
         if seed:
