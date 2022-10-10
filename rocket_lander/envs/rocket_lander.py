@@ -560,7 +560,7 @@ class Rocket(gym.Env):
             1.0 if self.leg_contacts[1] else 0.0,
         ], dtype = np.float32)
 
-        return np.array(state, dtype=np.float32), {}
+        return np.array(state, dtype=np.float32)
     
     def step(self, action):
         assert action != None, "Action is None"
