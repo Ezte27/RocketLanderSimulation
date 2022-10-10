@@ -70,7 +70,7 @@ MAX_STEP_NUMBER        = 1200
 LANDING_TICKS          = 60
 
 # Pymunk Space Setup
-X_GRAVITY, Y_GRAVITY   = (0, 900 * SCALE) # Original gravity 956
+X_GRAVITY, Y_GRAVITY   = (0, 910 * SCALE) # Original gravity 956
 STARTING_POS           = (VIEWPORT_WIDTH//2, -200)
 
 # Sky
@@ -130,7 +130,7 @@ LANDING_PAD_ELASTICITY = 0.3
 LANDING_PAD_FRICTION   = 0.7
 LANDING_PAD_COLOR      = (50, 64, 63, 150)
 
-CRASHING_SPEED         = 0.035
+CRASHING_SPEED         = 0.04
 
 # SMOKE FOR VISUALS
 SMOKE_LIFETIME         = 0 # Lifetime
@@ -260,44 +260,49 @@ class Rocket(gym.Env):
         self.dt           = 1 / self.metadata['render_fps']
         self.render_mode  = render_mode
 
-        low = np.array(
-            [
-                # these are bounds for position
-                # realistically the environment should have ended
-                # long before we reach more than 50% outside
-                -1.5,
-                -1.5,
-                # velocity bounds is 5x rated speed
-                -1.0,
-                -1.0,
-                -math.pi,
-                -5.0,
-                -0.0,
-                -0.0,
-            ],
-            dtype = np.float32
-        )
+        # low = np.array(
+        #     [
+        #         # these are bounds for position
+        #         # realistically the environment should have ended
+        #         # long before we reach more than 50% outside
+        #         -1.5,
+        #         -1.5,
+        #         # velocity bounds is 5x rated speed
+        #         -1.0,
+        #         -1.0,
+        #         -math.pi,
+        #         -5.0,
+        #         -0.0,
+        #         -0.0,
+        #     ],
+        #     dtype = np.float32
+        # )
 
-        high = np.array(
-            [
-                # these are bounds for position
-                # realistically the environment should have ended
-                # long before we reach more than 50% outside
-                1.5,
-                1.5,
-                # velocity bounds is 1x rated speed
-                1.0,
-                1.0,
-                math.pi,
-                5.0,
-                1.0,
-                1.0,
-            ],
-            dtype = np.float32
-        )
+        # high = np.array(
+        #     [
+        #         # these are bounds for position
+        #         # realistically the environment should have ended
+        #         # long before we reach more than 50% outside
+        #         1.5,
+        #         1.5,
+        #         # velocity bounds is 1x rated speed
+        #         1.0,
+        #         1.0,
+        #         math.pi,
+        #         5.0,
+        #         1.0,
+        #         1.0,
+        #     ],
+        #     dtype = np.float32
+        # )
 
         # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(low, high, shape = (8,), dtype = np.float32)
+        #self.observation_space = spaces.Box(low, high, shape = (8,), dtype = np.float32)
+
+        # useful range is -1 .. +1, but spikes can be higher
+        self.observation_space = spaces.Box(
+            -np.inf, np.inf, shape=(8,), dtype=np.float32
+        )
         
         if CONTINUOUS:
             # Action is two floats [main engine, left-right engines].
@@ -549,18 +554,7 @@ class Rocket(gym.Env):
         vel    = self.lander.body.velocity
         angVel = self.lander.body.angular_velocity
 
-        state = np.array([
-            (pos.x - VIEWPORT_WIDTH / 2) / (VIEWPORT_WIDTH / 2),
-            (-pos.y + (LANDING_PAD_POS[1] - LEG_SIZE[1]/2 - ROCKET_SIZE[1]/2)) / (VIEWPORT_HEIGHT),
-            vel.x / 1000,
-            vel.y / 1000,
-            self.lander.body.angle,
-            20.0 * angVel / FPS,
-            1.0 if self.leg_contacts[0] else 0.0,
-            1.0 if self.leg_contacts[1] else 0.0,
-        ], dtype = np.float32)
-
-        return np.array(state, dtype=np.float32), {}
+        return self.step(6)[0]
     
     def step(self, action):
         assert action != None, "Action is None"
@@ -633,7 +627,7 @@ class Rocket(gym.Env):
         vel    = self.lander.body.velocity
         angVel = self.lander.body.angular_velocity
 
-        state = np.array([
+        state = [
             (pos.x - VIEWPORT_WIDTH / 2) / (VIEWPORT_WIDTH / 2),
             (-pos.y + (LANDING_PAD_POS[1] - LEG_SIZE[1]/2 - ROCKET_SIZE[1]/2)) / (VIEWPORT_HEIGHT),
             vel.x / 1000,
@@ -642,7 +636,7 @@ class Rocket(gym.Env):
             20.0 * angVel / FPS,
             1.0 if self.leg_contacts[0] else 0.0,
             1.0 if self.leg_contacts[1] else 0.0,
-        ], dtype = np.float32)
+        ]
 
         # Reward
         outside = True if abs(state[0]) > 1.2 else False
@@ -656,8 +650,8 @@ class Rocket(gym.Env):
             -60 * np.sqrt(state[2] * state[2] + state[3] * state[3])
             -70 * abs(state[4])
             -30 * abs(state[5])
-            +15 * state[6]
-            +15 * state[7]
+            +25 * state[6]
+            +25 * state[7]
         )  # Fifteen points for each leg contact
            # If you lose contact after landing, you get negative reward
         
@@ -704,7 +698,7 @@ class Rocket(gym.Env):
 
         self.render()
 
-        return np.array(state, dtype=np.float32), reward, done, info # observation, reward, done, truncated, info
+        return np.array(state, dtype = np.float32), reward, done, info # observation, reward, done, truncated, info
     
     def render(self):
 
@@ -858,8 +852,8 @@ def run():
     mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
 
     done      = False
-    truncated = False
-    while not(done or truncated):
+
+    while not done:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -927,13 +921,13 @@ def run():
             action = 6
 
         # Step
-        observation, reward, done, truncated, _ = env.step(action)
+        observation, reward, done, info = env.step(action)
         try:
             print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}")
         except NameError:
             print(f"Observation: {observation}, Reward: {reward}")
         
-        if (done or truncated): print("FINISHED SIMULATION")
+        if (done): print("FINISHED SIMULATION")
 
         # Mouse Interaction
         mouse_pos = pygame.mouse.get_pos()

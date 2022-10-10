@@ -260,44 +260,49 @@ class Rocket(gym.Env):
         self.dt           = 1 / self.metadata['render_fps']
         self.render_mode  = render_mode
 
-        low = np.array(
-            [
-                # these are bounds for position
-                # realistically the environment should have ended
-                # long before we reach more than 50% outside
-                -1.5,
-                -1.5,
-                # velocity bounds is 5x rated speed
-                -1.0,
-                -1.0,
-                -math.pi,
-                -5.0,
-                -0.0,
-                -0.0,
-            ],
-            dtype = np.float32
-        )
+        # low = np.array(
+        #     [
+        #         # these are bounds for position
+        #         # realistically the environment should have ended
+        #         # long before we reach more than 50% outside
+        #         -1.5,
+        #         -1.5,
+        #         # velocity bounds is 5x rated speed
+        #         -1.0,
+        #         -1.0,
+        #         -math.pi,
+        #         -5.0,
+        #         -0.0,
+        #         -0.0,
+        #     ],
+        #     dtype = np.float32
+        # )
 
-        high = np.array(
-            [
-                # these are bounds for position
-                # realistically the environment should have ended
-                # long before we reach more than 50% outside
-                1.5,
-                1.5,
-                # velocity bounds is 1x rated speed
-                1.0,
-                1.0,
-                math.pi,
-                5.0,
-                1.0,
-                1.0,
-            ],
-            dtype = np.float32
-        )
+        # high = np.array(
+        #     [
+        #         # these are bounds for position
+        #         # realistically the environment should have ended
+        #         # long before we reach more than 50% outside
+        #         1.5,
+        #         1.5,
+        #         # velocity bounds is 1x rated speed
+        #         1.0,
+        #         1.0,
+        #         math.pi,
+        #         5.0,
+        #         1.0,
+        #         1.0,
+        #     ],
+        #     dtype = np.float32
+        # )
 
         # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(low, high, shape = (8,), dtype = np.float32)
+        #self.observation_space = spaces.Box(low, high, shape = (8,), dtype = np.float32)
+
+        # useful range is -1 .. +1, but spikes can be higher
+        self.observation_space = spaces.Box(
+            -np.inf, np.inf, shape=(8,), dtype=np.float32
+        )
         
         if CONTINUOUS:
             # Action is two floats [main engine, left-right engines].
@@ -549,18 +554,7 @@ class Rocket(gym.Env):
         vel    = self.lander.body.velocity
         angVel = self.lander.body.angular_velocity
 
-        state = np.array([
-            (pos.x - VIEWPORT_WIDTH / 2) / (VIEWPORT_WIDTH / 2),
-            (-pos.y + (LANDING_PAD_POS[1] - LEG_SIZE[1]/2 - ROCKET_SIZE[1]/2)) / (VIEWPORT_HEIGHT),
-            vel.x / 1000,
-            vel.y / 1000,
-            self.lander.body.angle,
-            20.0 * angVel / FPS,
-            1.0 if self.leg_contacts[0] else 0.0,
-            1.0 if self.leg_contacts[1] else 0.0,
-        ], dtype = np.float32)
-
-        return np.array(state, dtype=np.float32)
+        return self.step(6)[0]
     
     def step(self, action):
         assert action != None, "Action is None"
@@ -633,7 +627,7 @@ class Rocket(gym.Env):
         vel    = self.lander.body.velocity
         angVel = self.lander.body.angular_velocity
 
-        state = np.array([
+        state = [
             (pos.x - VIEWPORT_WIDTH / 2) / (VIEWPORT_WIDTH / 2),
             (-pos.y + (LANDING_PAD_POS[1] - LEG_SIZE[1]/2 - ROCKET_SIZE[1]/2)) / (VIEWPORT_HEIGHT),
             vel.x / 1000,
@@ -642,7 +636,7 @@ class Rocket(gym.Env):
             20.0 * angVel / FPS,
             1.0 if self.leg_contacts[0] else 0.0,
             1.0 if self.leg_contacts[1] else 0.0,
-        ], dtype = np.float32)
+        ]
 
         # Reward
         outside = True if abs(state[0]) > 1.2 else False
@@ -704,7 +698,7 @@ class Rocket(gym.Env):
 
         self.render()
 
-        return np.array(state, dtype=np.float32), reward, done, info # observation, reward, done, truncated, info
+        return np.array(state, dtype = np.float32), reward, done, info # observation, reward, done, truncated, info
     
     def render(self):
 
