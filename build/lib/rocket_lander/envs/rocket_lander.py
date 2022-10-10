@@ -58,7 +58,6 @@ pygame.init()
 
 VIEWPORT_WIDTH         = 1000#1920
 VIEWPORT_HEIGHT        = 1020
-WINDOW                 = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
 CLOCK                  = pygame.time.Clock()
 FONT                   = pygame.font.SysFont("ariel", 24)
 
@@ -250,12 +249,11 @@ class Rocket(gym.Env):
 
             if self.screen is None:
                 self.screen   = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
-                print("[WARNING] pygame display NOT defined")
         
         if clock:
             self.clock    = pygame.time.Clock()
             self.fps      = fps if fps else self.metadata["render_fps"]
-            
+
         else:
             self.clock    = None
             self.fps      = None
@@ -504,7 +502,6 @@ class Rocket(gym.Env):
             
             if self.screen is None:
                 self.screen   = pygame.display.set_mode((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
-                print("[WARNING] pygame display NOT defined")
         
         if self.clock:
             self.clock = pygame.time.Clock()
