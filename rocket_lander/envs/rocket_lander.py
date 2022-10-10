@@ -70,7 +70,7 @@ MAX_STEP_NUMBER        = 1200
 LANDING_TICKS          = 60
 
 # Pymunk Space Setup
-X_GRAVITY, Y_GRAVITY   = (0, 900 * SCALE) # Original gravity 956
+X_GRAVITY, Y_GRAVITY   = (0, 910 * SCALE) # Original gravity 956
 STARTING_POS           = (VIEWPORT_WIDTH//2, -200)
 
 # Sky
@@ -130,7 +130,7 @@ LANDING_PAD_ELASTICITY = 0.3
 LANDING_PAD_FRICTION   = 0.7
 LANDING_PAD_COLOR      = (50, 64, 63, 150)
 
-CRASHING_SPEED         = 0.035
+CRASHING_SPEED         = 0.04
 
 # SMOKE FOR VISUALS
 SMOKE_LIFETIME         = 0 # Lifetime
@@ -656,8 +656,8 @@ class Rocket(gym.Env):
             -60 * np.sqrt(state[2] * state[2] + state[3] * state[3])
             -70 * abs(state[4])
             -30 * abs(state[5])
-            +15 * state[6]
-            +15 * state[7]
+            +25 * state[6]
+            +25 * state[7]
         )  # Fifteen points for each leg contact
            # If you lose contact after landing, you get negative reward
         
@@ -858,8 +858,8 @@ def run():
     mouse_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
 
     done      = False
-    truncated = False
-    while not(done or truncated):
+
+    while not done:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -927,13 +927,13 @@ def run():
             action = 6
 
         # Step
-        observation, reward, done, truncated, _ = env.step(action)
+        observation, reward, done, info = env.step(action)
         try:
             print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}")
         except NameError:
             print(f"Observation: {observation}, Reward: {reward}")
         
-        if (done or truncated): print("FINISHED SIMULATION")
+        if (done): print("FINISHED SIMULATION")
 
         # Mouse Interaction
         mouse_pos = pygame.mouse.get_pos()
