@@ -79,7 +79,7 @@ SKY_COLOR              = (212, 234, 255)
 MIN_THROTTLE           = 0.3
 GIMBAL_THRESHOLD       = 0.15
 MAIN_ENGINE_POWER      = 24000 * SCALE
-SIDE_ENGINE_POWER      = 6000 * SCALE
+SIDE_ENGINE_POWER      = 3000 * SCALE
 
 # ROCKET
 ROCKET_WIDTH           = 40 * SCALE
@@ -130,7 +130,7 @@ LANDING_PAD_ELASTICITY = 0.3
 LANDING_PAD_FRICTION   = 0.7
 LANDING_PAD_COLOR      = (50, 64, 63, 150)
 
-CRASHING_SPEED         = 0.12
+CRASHING_SPEED         = 0.035
 
 # SMOKE FOR VISUALS
 SMOKE_LIFETIME         = 0 # Lifetime
@@ -314,7 +314,7 @@ class Rocket(gym.Env):
     
     def _setup(self,):
 
-        self._create_water()
+        self.water                   = self._create_water()
         
         self.lander, self.mainEngine = self._create_lander()
 
@@ -420,6 +420,7 @@ class Rocket(gym.Env):
         water.elasticity    = 0.2
         water.color         = WATER_COLOR
         self.space.add(water_body, water)
+        return water
 
     def _create_landing_pad(self):
         size             = LANDING_PAD_SIZE
@@ -450,12 +451,26 @@ class Rocket(gym.Env):
         contacts = []
         shape = self.landing_pad if check_landing_pad else self.water
 
-        if len(self.legs) > 0 and ((self.landing_pad is not None and check_landing_pad is True) or (self.water is not None and check_landing_pad is not True)):
+        if (len(self.legs) > 0) and ((self.landing_pad is not None and check_landing_pad is True) or (self.water is not None and not(check_landing_pad))):
             for leg in self.legs:
                 contacts.append((leg.shapes_collide(shape).normal)[1] >= 1)
 
         else:
             return [False, False]
+        
+        return contacts
+    
+    def _check_lander_collision(self):
+        contacts = [False, False] # index 0 is contact with landing pad, and index 1 is contact with water
+
+        if (len(self.legs) > 0):
+            for leg in self.legs:
+                for shape in [self.landing_pad, self.water]:
+                    if shape == self.landing_pad:
+                        contacts[0] = True if ((self.lander.shapes_collide(shape).normal)[1] >= 1) else contacts[0]
+
+                    elif shape == self.water:
+                        contacts[1] = True if ((self.lander.shapes_collide(shape).normal)[1] >= 1) else contacts[1]
         
         return contacts
     
@@ -523,7 +538,7 @@ class Rocket(gym.Env):
         # Apply random angular vel to the rocket
         if seed:
             np.random.seed(seed)
-        self.lander.body.apply_impulse_at_local_point((np.random.randint(-200 * SCALE, 200 * SCALE, 1), 0), (0, -ROCKET_SIZE[1]/2))
+        self.lander.body.apply_impulse_at_local_point((np.random.randint(-500 * SCALE, 500 * SCALE, 1), 0), (0, -ROCKET_SIZE[1]/2))
 
         # Checking for leg contact with landing pad
         self.leg_contacts = self._check_leg_contacts(True)
@@ -629,14 +644,15 @@ class Rocket(gym.Env):
         ], dtype = np.float32)
 
         # Reward
-        outside = True if abs(state[0]) > 1.2 or abs(state[1]) > 1.2 else False
+        outside = True if abs(state[0]) > 1.2 else False
         landed = state[6] and state[7] and vel.x < 0.3 and vel.y < 0.2
         crashed = False
-
+        
         shaping = (
-            -40 * abs(state[0]) # X pos is really important to nail down
-            -70 * np.sqrt(state[0] * state[0] + state[1] * state[1])
-            -70 * np.sqrt(state[2] * state[2] + state[3] * state[3])
+            -35 * abs(state[0]) # X pos is really important to nail down
+            -60 * np.sqrt(state[0] * state[0] + state[1] * state[1])
+            -35 * abs(state[3]) # Y vel is really important to nail down
+            -60 * np.sqrt(state[2] * state[2] + state[3] * state[3])
             -70 * abs(state[4])
             -30 * abs(state[5])
             +15 * state[6]
@@ -652,6 +668,14 @@ class Rocket(gym.Env):
         reward -= abs(self.force_dir) * 0.06
         
         if (state[3] >= CRASHING_SPEED) and (any(self.leg_contacts)):
+            crashed = True
+        
+        # Checking for leg contact with water
+        if any(self._check_leg_contacts(False)):
+            outside = True
+
+        # Check for rocket body colliding with ground or water
+        if any(self._check_lander_collision()):
             crashed = True
         
         if not all(self.leg_contacts):
@@ -673,7 +697,7 @@ class Rocket(gym.Env):
         
         if outside or crashed:
             done   = True
-            reward = -80.000000000
+            reward = -80.0000000000
 
         self.space.step(self.dt)
 
@@ -823,6 +847,8 @@ class Rocket(gym.Env):
 
 def run():
 
+    import sys
+
     #create_boundaries(space, width, height)
     env = Rocket(render_mode = 'human', gravity = (X_GRAVITY, Y_GRAVITY))
     action = 0
@@ -832,11 +858,13 @@ def run():
 
     done      = False
     truncated = False
-    while all([not(done), not(truncated)]):
+    while not(done or truncated):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                env.close()
+                pygame.quit()
+                sys.exit()
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if mouse_joint is not None:
