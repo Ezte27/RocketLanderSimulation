@@ -73,8 +73,8 @@ LANDING_TICKS          = 60
 X_GRAVITY, Y_GRAVITY   = (0, 910 * SCALE) # Original gravity 956
 DIFFICULTY_LEVEL       = 1 # Normal difficulty, the difficulty level affects the range of the starting pos, the STARTING_ANG_VEL_RANGE, and the CRASHING_SPEED
 STARTING_POS           = (VIEWPORT_WIDTH//2, -200) # This is the mean starting pos
-STARTING_POS_DEVIATION = ((VIEWPORT_WIDTH * SCALE) / 2.5) * DIFFICULTY_LEVEL
-STARTING_ANG_VEL_RANGE = [-500 * DIFFICULTY_LEVEL, 500 * DIFFICULTY_LEVEL]
+STARTING_POS_DEVIATION = ((VIEWPORT_WIDTH * SCALE) / 3.3) * DIFFICULTY_LEVEL
+STARTING_ANG_VEL_RANGE = 500 * DIFFICULTY_LEVEL * SCALE
 
 # Sky
 SKY_COLOR              = (212, 234, 255)
@@ -335,7 +335,7 @@ class Rocket(gym.Env):
     def _create_lander(self):
         # Rocket
         size             = ROCKET_SIZE
-        pos              = STARTING_POS
+        pos              = self.starting_pos
 
         inertia          = pymunk.moment_for_box(mass = ROCKET_MASS, size = ROCKET_SIZE)
 
@@ -540,6 +540,9 @@ class Rocket(gym.Env):
         self.done         = False
         self.truncated    = False
         self.prev_shaping = None
+
+        # Randomizing Rocket Starting Pos
+        self.starting_pos = ((np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION, size=1) + STARTING_POS[0]), STARTING_POS[1])
         
         self._setup()
 
@@ -548,10 +551,7 @@ class Rocket(gym.Env):
             self.draw_options.flags = pymunk.SpaceDebugDrawOptions.DRAW_SHAPES
         
         # Apply random angular vel to the rocket
-        self.lander.body.apply_impulse_at_local_point((np.random.randint(-500 * SCALE, 500 * SCALE, 1), 0), (0, -ROCKET_SIZE[1]/2))
-
-        # Randomizing Rocket Starting Pos
-        self.lander.body.position.x += np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION)
+        self.lander.body.apply_impulse_at_local_point((np.random.randint(-STARTING_ANG_VEL_RANGE, STARTING_ANG_VEL_RANGE, 1), 0), (0, -ROCKET_SIZE[1]/2))
 
         # Checking for leg contact with landing pad
         self.leg_contacts = self._check_leg_contacts(True)
