@@ -696,13 +696,13 @@ class Rocket(gym.Env):
 
         self.space.step(self.dt)
 
-        self.render()
+        self.render(mode = self.render_mode)
 
         return np.array(state, dtype = np.float32), reward, done, info # observation, reward, done, truncated, info
     
-    def render(self):
+    def render(self, mode, **kwargs):
 
-        if self.render_mode is not None:
+        if mode is not None:
             self.surf = pygame.Surface((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
             self.particle_surf = self.surf.copy()
 
@@ -807,7 +807,7 @@ class Rocket(gym.Env):
             font_surf = FONT.render(str(self.stepNumber), False, "Black")
             font_rect = font_surf.get_rect(topleft = (20, 20))
 
-        if self.render_mode == "human":
+        if mode == "human":
             assert self.screen is not None, "Screen is NONE"
 
             self.screen.blit(self.surf, (0, 0))
@@ -827,7 +827,7 @@ class Rocket(gym.Env):
 
             pygame.display.flip()
 
-        elif self.render_mode == "rgb_array":
+        elif mode == "rgb_array":
             return np.transpose(
                 np.array(pygame.surfarray.pixels3d(self.surf)), axes=(1, 0, 2)
             )

@@ -71,7 +71,10 @@ LANDING_TICKS          = 60
 
 # Pymunk Space Setup
 X_GRAVITY, Y_GRAVITY   = (0, 910 * SCALE) # Original gravity 956
-STARTING_POS           = (VIEWPORT_WIDTH//2, -200)
+DIFFICULTY_LEVEL       = 1 # Normal difficulty, the difficulty level affects the range of the starting pos, the STARTING_ANG_VEL_RANGE, and the CRASHING_SPEED
+STARTING_POS           = (VIEWPORT_WIDTH//2, -200) # This is the mean starting pos
+STARTING_POS_DEVIATION = ((VIEWPORT_WIDTH * SCALE) / 2.5) * DIFFICULTY_LEVEL
+STARTING_ANG_VEL_RANGE = [-500 * DIFFICULTY_LEVEL, 500 * DIFFICULTY_LEVEL]
 
 # Sky
 SKY_COLOR              = (212, 234, 255)
@@ -130,7 +133,7 @@ LANDING_PAD_ELASTICITY = 0.3
 LANDING_PAD_FRICTION   = 0.7
 LANDING_PAD_COLOR      = (50, 64, 63, 150)
 
-CRASHING_SPEED         = 0.04
+CRASHING_SPEED         = 0.036 / (DIFFICULTY_LEVEL* 0.8) # The maximum y_vel that the lander can have at touch down, to avoid crashing.
 
 # SMOKE FOR VISUALS
 SMOKE_LIFETIME         = 0 # Lifetime
@@ -511,6 +514,9 @@ class Rocket(gym.Env):
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         self._destroy()
+
+        if seed:
+            np.random.seed(seed)
         
         self.space = pymunk.Space()
 
@@ -542,9 +548,10 @@ class Rocket(gym.Env):
             self.draw_options.flags = pymunk.SpaceDebugDrawOptions.DRAW_SHAPES
         
         # Apply random angular vel to the rocket
-        if seed:
-            np.random.seed(seed)
         self.lander.body.apply_impulse_at_local_point((np.random.randint(-500 * SCALE, 500 * SCALE, 1), 0), (0, -ROCKET_SIZE[1]/2))
+
+        # Randomizing Rocket Starting Pos
+        self.lander.body.position.x += np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION)
 
         # Checking for leg contact with landing pad
         self.leg_contacts = self._check_leg_contacts(True)
@@ -696,13 +703,13 @@ class Rocket(gym.Env):
 
         self.space.step(self.dt)
 
-        self.render()
+        self.render(mode = self.render_mode)
 
         return np.array(state, dtype = np.float32), reward, done, info # observation, reward, done, truncated, info
     
-    def render(self):
+    def render(self, mode, **kwargs):
 
-        if self.render_mode is not None:
+        if mode is not None:
             self.surf = pygame.Surface((VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
             self.particle_surf = self.surf.copy()
 
@@ -807,7 +814,7 @@ class Rocket(gym.Env):
             font_surf = FONT.render(str(self.stepNumber), False, "Black")
             font_rect = font_surf.get_rect(topleft = (20, 20))
 
-        if self.render_mode == "human":
+        if mode == "human":
             assert self.screen is not None, "Screen is NONE"
 
             self.screen.blit(self.surf, (0, 0))
@@ -827,7 +834,7 @@ class Rocket(gym.Env):
 
             pygame.display.flip()
 
-        elif self.render_mode == "rgb_array":
+        elif mode == "rgb_array":
             return np.transpose(
                 np.array(pygame.surfarray.pixels3d(self.surf)), axes=(1, 0, 2)
             )
