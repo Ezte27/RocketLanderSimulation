@@ -135,7 +135,7 @@ LANDING_PAD_ELASTICITY  = 0.3
 LANDING_PAD_FRICTION    = 0.7
 LANDING_PAD_COLOR       = (50, 64, 63, 150)
 
-CRASHING_SPEED          = 0.036 / (DIFFICULTY_LEVEL* 0.8) # The maximum y_vel that the lander can have at touch down, to avoid crashing.
+CRASHING_SPEED          = 0.005 / (DIFFICULTY_LEVEL) # The maximum y_vel that the lander can have at touch down, to avoid crashing.
 
 # SMOKE FOR VISUALS
 SMOKE_LIFETIME          = 0 # Lifetime
@@ -154,6 +154,7 @@ THRUSTER_PARTICLE_MASS  = 0.9
 
 # OTHER
 DRAW_FLAGS              = False
+DEBUG_FLAG              = False
 
 class Rocket(gym.Env):
     f'''
@@ -525,6 +526,7 @@ class Rocket(gym.Env):
 
         self.engine_pos    = ()
         self.thruster_pos  = []
+        self.starting_pos  = STARTING_POS
 
         self.engine_particles   = []
         self.thruster_particles = []
@@ -566,8 +568,9 @@ class Rocket(gym.Env):
         self.truncated    = False
         self.prev_shaping = None
 
-        # Randomizing Rocket Starting Pos
-        self.starting_pos = ((np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION, size=1) + STARTING_POS[0]), STARTING_POS[1])
+        if not DEBUG_FLAG:
+            # Randomizing Rocket Starting Pos
+            self.starting_pos = ((np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION, size=1) + STARTING_POS[0]), STARTING_POS[1])
         
         self._setup()
 
@@ -575,16 +578,12 @@ class Rocket(gym.Env):
             self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
             self.draw_options.flags = pymunk.SpaceDebugDrawOptions.DRAW_SHAPES
         
-        # Apply random angular vel to the rocket
-        self.lander.body.apply_impulse_at_local_point((np.random.randint(-STARTING_ANG_VEL_RANGE, STARTING_ANG_VEL_RANGE, 1), 0), (0, -ROCKET_SIZE[1]/2))
+        if not DEBUG_FLAG:
+            # Apply random angular vel to the rocket
+            self.lander.body.apply_impulse_at_local_point((np.random.randint(-STARTING_ANG_VEL_RANGE, STARTING_ANG_VEL_RANGE, 1), 0), (0, -ROCKET_SIZE[1]/2))
 
         # Checking for leg contact with landing pad
         self.leg_contacts = self._check_leg_contacts(True)
-
-        # Observation
-        pos    = self.lander.body.position
-        vel    = self.lander.body.velocity
-        angVel = self.lander.body.angular_velocity
 
         return self.step(6)[0]
     
@@ -681,7 +680,7 @@ class Rocket(gym.Env):
         shaping = (
             -35 * abs(state[0]) # X pos is really important to nail down
             -60 * np.sqrt(state[0] * state[0] + state[1] * state[1])
-            -35 * abs(state[3]) # Y vel is really important to nail down
+            -50 * abs(state[3]) # Y vel is really important to nail down
             -60 * np.sqrt(state[2] * state[2] + state[3] * state[3])
             -70 * abs(state[4])
             -30 * abs(state[5])

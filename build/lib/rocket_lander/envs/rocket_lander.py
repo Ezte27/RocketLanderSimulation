@@ -51,55 +51,57 @@ Continuous control inputs are:
 
 """
 
+#TODO: visualization of the cold gas control thrusters using particles
+
 pygame.init()
 
 # Display Setup
 
-VIEWPORT_WIDTH         = 1000#1920
-VIEWPORT_HEIGHT        = 1020
-CLOCK                  = pygame.time.Clock()
-FONT                   = pygame.font.SysFont("ariel", 24)
+VIEWPORT_WIDTH          = 1000#1920
+VIEWPORT_HEIGHT         = 1020
+CLOCK                   = pygame.time.Clock()
+FONT                    = pygame.font.SysFont("ariel", 24)
 
-FPS                    = 30 # Default FPS used if no fps is provided
-SCALE                  = 1  # Temporal Scaling, lower is faster - adjust forces appropriately
+FPS                     = 30 # Default FPS used if no fps is provided
+SCALE                   = 1  # Temporal Scaling, lower is faster - adjust forces appropriately
 
 
 # Environment Variables
-CONTINUOUS             = False
-MAX_STEP_NUMBER        = 1200
-LANDING_TICKS          = 60
+CONTINUOUS              = False
+MAX_STEP_NUMBER         = 1200
+LANDING_TICKS           = 60
 
 # Pymunk Space Setup
-X_GRAVITY, Y_GRAVITY   = (0, 910 * SCALE) # Original gravity 956
-DIFFICULTY_LEVEL       = 1 # Normal difficulty, the difficulty level affects the range of the starting pos, the STARTING_ANG_VEL_RANGE, and the CRASHING_SPEED
-STARTING_POS           = (VIEWPORT_WIDTH//2, -200) # This is the mean starting pos
-STARTING_POS_DEVIATION = ((VIEWPORT_WIDTH * SCALE) / 3.3) * DIFFICULTY_LEVEL
-STARTING_ANG_VEL_RANGE = 500 * DIFFICULTY_LEVEL * SCALE
+X_GRAVITY, Y_GRAVITY    = (0, 910 * SCALE) # Original gravity 956
+DIFFICULTY_LEVEL        = 1 # Normal difficulty, the difficulty level affects the range of the starting pos, the STARTING_ANG_VEL_RANGE, and the CRASHING_SPEED
+STARTING_POS            = (VIEWPORT_WIDTH//2, -200) # This is the mean starting pos
+STARTING_POS_DEVIATION  = ((VIEWPORT_WIDTH * SCALE) / 3.3) * DIFFICULTY_LEVEL
+STARTING_ANG_VEL_RANGE  = 500 * DIFFICULTY_LEVEL * SCALE
 
 # Sky
-SKY_COLOR              = (212, 234, 255)
+SKY_COLOR               = (212, 234, 255)
 
-MIN_THROTTLE           = 0.3
-GIMBAL_THRESHOLD       = 0.15
-MAIN_ENGINE_POWER      = 24000 * SCALE
-SIDE_ENGINE_POWER      = 3000 * SCALE
+MIN_THROTTLE            = 0.3
+GIMBAL_THRESHOLD        = 0.15
+MAIN_ENGINE_POWER       = 24000 * SCALE
+SIDE_ENGINE_POWER       = 3000 * SCALE
 
 # ROCKET
-ROCKET_WIDTH           = 40 * SCALE
-ROCKET_HEIGHT          = ROCKET_WIDTH * 5
-ROCKET_SIZE            = (ROCKET_WIDTH, ROCKET_HEIGHT)
-ROCKET_MASS            = 30 * SCALE
-ROCKET_ELASTICITY      = 0.1
-ROCKET_FRICTION        = 0.5
-ROCKET_COLOR           = (161, 159, 159, 250)
+ROCKET_WIDTH            = 40 * SCALE
+ROCKET_HEIGHT           = ROCKET_WIDTH * 5
+ROCKET_SIZE             = (ROCKET_WIDTH, ROCKET_HEIGHT)
+ROCKET_MASS             = 30 * SCALE
+ROCKET_ELASTICITY       = 0.1
+ROCKET_FRICTION         = 0.5
+ROCKET_COLOR            = (161, 159, 159, 250)
 
 # ENGINE
-ENGINE_SIZE            = (ROCKET_WIDTH * 0.4, ROCKET_WIDTH * 0.5)
-ENGINE_HEIGHT          = (ROCKET_HEIGHT/2) * 0.86
-ENGINE_MASS            = ROCKET_MASS * 0.1
-ENGINE_ELASTICITY      = 0.1
-ENGINE_FRICTION        = 0.5
-ENGINE_COLOR           = (111, 109, 109, 250)
+ENGINE_SIZE             = (ROCKET_WIDTH * 0.4, ROCKET_WIDTH * 0.5)
+ENGINE_HEIGHT           = (ROCKET_HEIGHT/2) * 0.86
+ENGINE_MASS             = ROCKET_MASS * 0.1
+ENGINE_ELASTICITY       = 0.1
+ENGINE_FRICTION         = 0.5
+ENGINE_COLOR            = (111, 109, 109, 250)
 
 # FIRE_WIDTH             = ROCKET_WIDTH * 3
 # FIRE_HEIGHT            = FIRE_WIDTH * 3.4
@@ -108,45 +110,51 @@ ENGINE_COLOR           = (111, 109, 109, 250)
 # COLD_GAS_HEIGHT        = COLD_GAS_WIDTH * 3
 
 # CONTROL THRUSTERS
-THRUSTER_HEIGHT        = (ROCKET_HEIGHT/2) * -0.86
+THRUSTER_HEIGHT         = (ROCKET_HEIGHT/2) * -0.86
 
 # LEGS
-LEG_HEIGHT             = ROCKET_SIZE[1] * 0.35
-LEG_SPRING_HEIGHT      = ROCKET_SIZE[1] * 0.1
-LEG_SIZE               = (ROCKET_SIZE[0] * 0.3, ROCKET_SIZE[1] * 0.4)
-LEG_MASS               = 8 * SCALE
-LEG_COLOR              = (220, 20, 30, 20)
-LEG_ELASTICITY         = 0.3
-LEG_FRICTION           = 0.6
+LEG_HEIGHT              = ROCKET_SIZE[1] * 0.35
+LEG_SPRING_HEIGHT       = ROCKET_SIZE[1] * 0.1
+LEG_SIZE                = (ROCKET_SIZE[0] * 0.3, ROCKET_SIZE[1] * 0.4)
+LEG_MASS                = 8 * SCALE
+LEG_COLOR               = (220, 20, 30, 20)
+LEG_ELASTICITY          = 0.3
+LEG_FRICTION            = 0.6
 
 # WATER
-WATER_HEIGHT           = 80 * SCALE
-WATER_COLOR            = (0, 157, 196, 180)
+WATER_HEIGHT            = 80 * SCALE
+WATER_COLOR             = (0, 157, 196, 180)
 
 # LANDING PAD
-LANDING_PAD_HEIGHT     = ROCKET_WIDTH * 0.6
-LANDING_PAD_WIDTH      = LANDING_PAD_HEIGHT * 14
-LANDING_PAD_SIZE       = (LANDING_PAD_WIDTH, LANDING_PAD_HEIGHT)
-LANDING_PAD_POS        = (VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT - (WATER_HEIGHT) - (LANDING_PAD_SIZE[1]/2))
+LANDING_PAD_HEIGHT      = ROCKET_WIDTH * 0.6
+LANDING_PAD_WIDTH       = LANDING_PAD_HEIGHT * 14
+LANDING_PAD_SIZE        = (LANDING_PAD_WIDTH, LANDING_PAD_HEIGHT)
+LANDING_PAD_POS         = (VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT - (WATER_HEIGHT) - (LANDING_PAD_SIZE[1]/2))
 
-LANDING_PAD_ELASTICITY = 0.3
-LANDING_PAD_FRICTION   = 0.7
-LANDING_PAD_COLOR      = (50, 64, 63, 150)
+LANDING_PAD_ELASTICITY  = 0.3
+LANDING_PAD_FRICTION    = 0.7
+LANDING_PAD_COLOR       = (50, 64, 63, 150)
 
-CRASHING_SPEED         = 0.036 / (DIFFICULTY_LEVEL* 0.8) # The maximum y_vel that the lander can have at touch down, to avoid crashing.
+CRASHING_SPEED          = 0.005 / (DIFFICULTY_LEVEL) # The maximum y_vel that the lander can have at touch down, to avoid crashing.
 
 # SMOKE FOR VISUALS
-SMOKE_LIFETIME         = 0 # Lifetime
-PARTICLE_TTL_SUBTRACT  = (1 / FPS)  # Amount to subtract ttl per frame
-MAX_PARTICLES          = 100
-PARTICLE_STARTING_TTL  = 1.0
-SMOKE_RATE             = 0.98 # The rate at which the smoke gets generated. Range = [0 - PARTICLE_STARTING_TTL]
-PARTICLE_GROWTH_RATE   = 20 / FPS
-PARICLE_MAX_RADIUS     = 50 * SCALE
-PARTICLE_Y_VEL_RANGE   = [100, 300]
+SMOKE_LIFETIME          = 0 # Lifetime
+PARTICLE_TTL_SUBTRACT   = (1 / FPS)  # Amount to subtract ttl per frame
+MAX_ENGINE_PARTICLES    = 85
+PARTICLE_STARTING_TTL   = 1.0
+SMOKE_RATE              = 0.98 # The rate at which the smoke gets generated. Range = [0 - PARTICLE_STARTING_TTL]
+PARTICLE_GROWTH_RATE    = 20 / FPS
+PARTICLE_MAX_RADIUS     = 50 * SCALE
+PARTICLE_Y_VEL_RANGE    = [100, 300]
+MAX_THRUSTER_PARTICLES  = 40
+THRUSTER_PARTICLE_COLOR = (0, 0, 255, 255)
+THRUSTER_PARTICLE_VEL   = 3.5
+TRHUSTER_PARTICLE_RAD   = 4
+THRUSTER_PARTICLE_MASS  = 0.9
 
 # OTHER
-DRAW_FLAGS             = False
+DRAW_FLAGS              = False
+DEBUG_FLAG              = False
 
 class Rocket(gym.Env):
     f'''
@@ -444,16 +452,31 @@ class Rocket(gym.Env):
 
         return shape
     
-    def _create_particle(self, mass, x, y, ttl, radius):
-        color = (0, 0, 0, 0)
+    def _create_particle(self, x, y, ttl, radius, particle_type = 0, vel = (0, 0)):
+        
+        if particle_type == 0:
+            p = [(x, y), ttl, radius, (0, 0, 0, 0)]
+            self.engine_particles.append(p)
 
-        p = [mass, (x, y), ttl, radius, color]
+        elif particle_type == 1:
+            p = [(x, y), ttl, radius, THRUSTER_PARTICLE_COLOR, vel]
+            self.thruster_particles.append(p)
 
         self.particles.append(p)
 
     def _clean_particles(self, clean_all: bool):
-        while self.particles and (clean_all or self.particles[0][2] <= 0):
-            self.particles.pop(0)
+        if clean_all:
+            self.particles          = []
+            self.engine_particles   = []
+            self.thruster_particles = []
+            return
+
+        while self.particles and self.particles[0][1] <= 0:
+            if self.particles.pop(0) in self.engine_particles:
+                self.engine_particles.pop(0)
+            
+            else:
+                self.thruster_particles.pop(0)
     
     def _check_leg_contacts(self, check_landing_pad):
         contacts = []
@@ -483,32 +506,36 @@ class Rocket(gym.Env):
         return contacts
     
     def _destroy(self):
-        self.space        = None
+        self.space         = None
 
-        self.lander       = None
-        self.mainEngine   = None
-        self.water        = None
-        self.landing_pad  = None
-        self.legs         = []
-        self.leg_contacts = []
+        self.lander        = None
+        self.mainEngine    = None
+        self.water         = None
+        self.landing_pad   = None
+        self.legs          = []
+        self.leg_contacts  = []
 
-        self.screen       = None
+        self.screen        = None
 
-        self.dt           = 0
+        self.dt            = 0
 
-        self.throttle     = 0
-        self.gimbal       = 0.0
-        self.power        = 0
-        self.force_dir    = 0
+        self.throttle      = 0
+        self.gimbal        = 0.0
+        self.power         = 0
+        self.force_dir     = 0
 
-        self.engine_pos   = ()
+        self.engine_pos    = ()
+        self.thruster_pos  = []
+        self.starting_pos  = STARTING_POS
 
-        self.particles    = []
+        self.engine_particles   = []
+        self.thruster_particles = []
+        self.particles          = []
 
-        self.stepNumber   = 0
-        self.landingTicks = 0
+        self.stepNumber    = 0
+        self.landingTicks  = 0
 
-        self.draw_options = None
+        self.draw_options  = None
 
         self._clean_particles(True)
 
@@ -541,8 +568,9 @@ class Rocket(gym.Env):
         self.truncated    = False
         self.prev_shaping = None
 
-        # Randomizing Rocket Starting Pos
-        self.starting_pos = ((np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION, size=1) + STARTING_POS[0]), STARTING_POS[1])
+        if not DEBUG_FLAG:
+            # Randomizing Rocket Starting Pos
+            self.starting_pos = ((np.random.randint(-STARTING_POS_DEVIATION, STARTING_POS_DEVIATION, size=1) + STARTING_POS[0]), STARTING_POS[1])
         
         self._setup()
 
@@ -550,16 +578,12 @@ class Rocket(gym.Env):
             self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
             self.draw_options.flags = pymunk.SpaceDebugDrawOptions.DRAW_SHAPES
         
-        # Apply random angular vel to the rocket
-        self.lander.body.apply_impulse_at_local_point((np.random.randint(-STARTING_ANG_VEL_RANGE, STARTING_ANG_VEL_RANGE, 1), 0), (0, -ROCKET_SIZE[1]/2))
+        if not DEBUG_FLAG:
+            # Apply random angular vel to the rocket
+            self.lander.body.apply_impulse_at_local_point((np.random.randint(-STARTING_ANG_VEL_RANGE, STARTING_ANG_VEL_RANGE, 1), 0), (0, -ROCKET_SIZE[1]/2))
 
         # Checking for leg contact with landing pad
         self.leg_contacts = self._check_leg_contacts(True)
-
-        # Observation
-        pos    = self.lander.body.position
-        vel    = self.lander.body.velocity
-        angVel = self.lander.body.angular_velocity
 
         return self.step(6)[0]
     
@@ -624,7 +648,10 @@ class Rocket(gym.Env):
         
         self.lander.body.apply_force_at_local_point(force = force_c, point=force_pos_c)
 
-        self.engine_pos = (self.mainEngine.body.position[0] + (-np.sin(self.mainEngine.body.angle)), self.mainEngine.body.position[1] + (np.cos(self.mainEngine.body.angle)))
+        self.engine_pos    = (self.mainEngine.body.position[0] + (-np.sin(self.mainEngine.body.angle)), self.mainEngine.body.position[1] + (np.cos(self.mainEngine.body.angle)))
+        self.thruster_pos  = list((THRUSTER_HEIGHT * 0.85) * np.array((-np.sin(self.lander.body.angle), np.cos(self.lander.body.angle)))) 
+        self.thruster_pos[0] += self.lander.body.position[0]
+        self.thruster_pos[1] += self.lander.body.position[1]
 
         # Checking for leg contact with landing pad
         self.leg_contacts = self._check_leg_contacts(True)
@@ -653,7 +680,7 @@ class Rocket(gym.Env):
         shaping = (
             -35 * abs(state[0]) # X pos is really important to nail down
             -60 * np.sqrt(state[0] * state[0] + state[1] * state[1])
-            -35 * abs(state[3]) # Y vel is really important to nail down
+            -50 * abs(state[3]) # Y vel is really important to nail down
             -60 * np.sqrt(state[2] * state[2] + state[3] * state[3])
             -70 * abs(state[4])
             -30 * abs(state[5])
@@ -718,29 +745,47 @@ class Rocket(gym.Env):
 
             for obj in self.particles:
 
-                NewTTL = (((obj[2] - 0) * 2) / 1) - 1
+                if obj in self.engine_particles: # Main Engine Particles
+                    NewTTL = (((obj[1] - 0) * 2) / 1) - 1
 
-                obj[1] = (obj[1][0], obj[1][1] + (randint(PARTICLE_Y_VEL_RANGE[0], PARTICLE_Y_VEL_RANGE[1]) / FPS) * NewTTL) # Move the smoke upwards
-                obj[2] -= random() * PARTICLE_TTL_SUBTRACT # Take time from its lifetime
-                obj[3] += PARTICLE_GROWTH_RATE if obj[3] < PARICLE_MAX_RADIUS else 0 # radius grows as the particle gets older
-                ttl = 1 - obj[2]
+                    obj[0] = (obj[0][0], obj[0][1] + (randint(PARTICLE_Y_VEL_RANGE[0], PARTICLE_Y_VEL_RANGE[1]) / FPS) * NewTTL) # Move the smoke upwards
+                    obj[1] -= random() * PARTICLE_TTL_SUBTRACT # Take time from its lifetime
+                    obj[2] += PARTICLE_GROWTH_RATE if obj[2] < PARTICLE_MAX_RADIUS else 0 # radius grows as the particle gets older
+                    ttl = 1 - obj[1]
+                    
+                    obj[3] = (
+                        int(ttl * 255),
+                        int(ttl * 255),
+                        int(ttl * 255),
+                        int(255)
+                    )
                 
-                obj[4] = (
-                    int(ttl * 255),
-                    int(ttl * 255),
-                    int(ttl * 255),
-                    int(255)
-                )
+                elif obj in self.thruster_particles: # Control Thruster Particles
+                    Vel = (obj[4][0] * THRUSTER_PARTICLE_VEL, obj[4][1])
+
+                    obj[0] = (obj[0][0] + (Vel[0] / FPS), obj[0][1] + (Vel[1]) / FPS) # Move the smoke left or right
+                    obj[1] -= random() * (PARTICLE_TTL_SUBTRACT * 1.5) # Take time from its lifetime
+                    obj[2] += (PARTICLE_GROWTH_RATE * 0.5) if obj[2] < (PARTICLE_MAX_RADIUS / 3.5) else 0 # radius grows as the particle gets older
+                    
+                    NewTTL = 1 - obj[1]
+                    obj[3] = (
+                        int(np.clip(20 + (NewTTL * 255), 0, 255)),
+                        int(np.clip(20 + (NewTTL * 255), 0, 255)),
+                        int(obj[3][2]),
+                        int(obj[3][3])
+                    )
+
+                else:
+                    Exception(f"The particles for rendering have invalid attributes, particle_type should be a discrete range between{Fore.BLUE} 0 {Fore.RESET}and {Fore.BLUE}1{Fore.RESET}")
 
             # Drawing the Particles
-
             for obj in self.particles:
                 try:
                     pygame.draw.circle(
                         self.particle_surf,
-                        color=obj[4],
-                        center = (obj[1][0], obj[1][1]),
-                        radius = obj[3], 
+                        color=obj[3],
+                        center = (obj[0][0], obj[0][1]),
+                        radius = obj[2], 
                     )
 
                 except ValueError: # particle RGB value is invalid
@@ -792,14 +837,27 @@ class Rocket(gym.Env):
                         #     (204, 204, 0),
                         # )
 
-            # Create Smoke Particles
-            if len(self.particles) <= MAX_PARTICLES:
-                if self.particles:
-                    if self.particles[-1][2] < SMOKE_RATE * self.throttle:
-                        self._create_particle(0.02, randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
+            # Create Main Engine Smoke Particles
+            if len(self.engine_particles) <= MAX_ENGINE_PARTICLES:
+                if len(self.engine_particles) > 0:
+                    if self.engine_particles[-1][1] < SMOKE_RATE * self.throttle and self.throttle > 0.05:
+                        self._create_particle(randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
                 else:
                     if self.throttle > 0:
-                        self._create_particle(0.02, randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
+                        self._create_particle(randrange(-10, 10) + self.engine_pos[0], randrange(-10, 10) + self.engine_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE)
+
+            # Create Control Thrusters Particles
+            if len(self.thruster_particles) <= MAX_THRUSTER_PARTICLES:
+                vel = list(THRUSTER_HEIGHT * np.array((self.force_dir * -np.sin(self.lander.body.angle - 1.5), (self.force_dir * np.cos(self.lander.body.angle  - 1.5))))) 
+                vel[1] += (self.lander.body.velocity[1] * THRUSTER_PARTICLE_MASS)
+                
+                if len(self.thruster_particles) > 0:
+                    if (self.thruster_particles[-1][1] < SMOKE_RATE * abs(self.force_dir)) and (abs(self.force_dir) > 0):
+                        self._create_particle(self.thruster_pos[0], self.thruster_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE, particle_type = 1, vel = vel)
+                
+                else:
+                    if abs(self.force_dir) > 0:
+                        self._create_particle(self.thruster_pos[0], self.thruster_pos[1], PARTICLE_STARTING_TTL, 8 * SCALE, particle_type = 1, vel = vel)
 
             self._clean_particles(False)
 
@@ -824,8 +882,6 @@ class Rocket(gym.Env):
             self.space.debug_draw(self.draw_options)
 
             self.screen.blit(font_surf, font_rect)
-
-            #pygame.draw.circle(self.screen, (255, 255, 255), self.debug, 10)
 
             pygame.event.pump()
 
@@ -929,6 +985,7 @@ def run():
 
         # Step
         observation, reward, done, info = env.step(action)
+
         try:
             print(f"Observation: {Fore.BLUE}{observation}{Fore.RESET}, Reward: {Fore.GREEN if reward > 0 else Fore.RED}{reward}{Fore.RESET}")
         except NameError:
