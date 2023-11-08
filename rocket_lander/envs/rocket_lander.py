@@ -268,7 +268,7 @@ class Rocket(gym.Env):
             self.clock    = None
             self.fps      = None
 
-        self.dt           = 1 / self.metadata['render_fps']
+        self.dt           = 1 / self.fps
         self.render_mode  = render_mode
 
         # low = np.array(
